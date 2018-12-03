@@ -1,6 +1,13 @@
 # Act-R_Jenga
 
-## To play as a human: 
-```(play-jenga 'human)```
+## Pour tester le fonctionnement du jenga en tant qu'humain 
+```(play-jenga)```
 
-Pour le moment, à part si la tour tombe, il n'y a pas de condition de fin. Il arrive un moment ou la seule chose que l'utilisateur/modèle peut faire c'est de prendre une pièce qui va faire tomber la tour.
+## Pour faire jouer le modèle: 
+### Parameters
+1. Le nombre d'expériences distincte (les résultats finaux vont faire la moyenne entres les expériences)
+2. (Optionelle) Le nombre d'ensembles d'essaie à faire 
+3. (Optionelle) Le nombre d'essaie à faire par ensembles
+
+```(jenga-model *nb_experiments* *nb_sets* *nb_trials*)```
+
