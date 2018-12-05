@@ -4,6 +4,8 @@
 ; Display is visible or not
 (defvar *visible* nil)                    
 
+(defvar *default_visible* nil)
+
 ; Keep track of if it's a human playing or not
 (defvar *human* nil)
 
@@ -279,9 +281,10 @@
    )
 )
 
-(defun model-jenga (nb_experiments &optional nb_sets nb_trials)
+(defun model-jenga (nb_experiments &optional nb_sets nb_trials visible)
     (if (eq nb_sets nil) (setf nb_sets *default_nb_sets*))
     (if (eq nb_trials nil) (setf nb_trials *default-nb-trials-per-sets*))
+    (if (eq visible nil) (setf *visible* *default_visible*) (setf *visible* visible))
     
     (let (  (result (make-list nb_sets :initial-element 0))
             (p-values (list '(recall-bad-row-change-row 0) '(recall-bad-row-try-another-block 0)))  
@@ -322,11 +325,13 @@
 )
 
 ; Main function starting an experiment, can specify 'human to play yourself
-(defun play-jenga (n &optional who ) 
+(defun play-jenga () 
+    (setf *visible* t)
+
     (build-display)
     (install-device *experiment-window*)   
     
-    (setf *human* who)
+    (setf *human* t)
     ; If it's a human playing, wait for human action
     (progn
         (reset-display)
@@ -347,7 +352,7 @@
 (clear-all)
 
 (define-model jenga 
-(sgp :v nil :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans .2 :mp 2 :rt 0)
+sgp :v nil :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans .2 :mp 2 :rt 0)
 
 (chunk-type goal 
     state 
@@ -487,7 +492,7 @@
     ==>
     =goal>
         state           find-another-block
-        block-y             =current-pos-y
+        block-y         =current-pos-y
         min-x           130
         max-x           175
         left-block      t
@@ -622,7 +627,7 @@
    =goal>
       isa               goal
       state             looking-second
-      first-block-found      t
+      first-block-found t
       left-block        =left-block
       middle-block      =middle-block
       right-block       =right-block
@@ -793,6 +798,7 @@
     =goal>
         isa                 goal
         state               try-bad-row
+        middle-block        t ; FAIRE TODO
         middle-block-pos    =visual-location
     =retrieval>
         isa                     bad-row
