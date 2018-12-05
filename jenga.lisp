@@ -352,7 +352,7 @@
 (clear-all)
 
 (define-model jenga 
-sgp :v nil :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans .2 :mp 2 :rt 0)
+(sgp :v nil :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans .2 :mp 2 :rt 0)
 
 (chunk-type goal 
     state 
