@@ -347,12 +347,12 @@
 
 ; Utility function to return the utility of a production
 (defun production-u-value (prod)
-   (caar (no-output (spp-fct (list prod :u)))))
+   (caar (no-output (spp-fct (list prod :u))))) 
 
 (clear-all)
 
 (define-model jenga 
-(sgp :v nil :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans .2 :mp 2 :rt 0)
+(sgp :v nil :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans 0.2 :mp nil :rt 1)
 
 (chunk-type goal 
     state 
@@ -414,9 +414,8 @@
     +visual-location>
         isa         visual-location
         :attended   nil
-        kind        oval            ; 'Oval' is kind 'button'
-        color       blue
-    -imaginal>)
+        kind        oval            ; 'Oval' is kind 'button'd
+        color       blue)
 
 (p attend-block
     =goal>
@@ -762,10 +761,10 @@
         middle-block        =middle-block
         right-block         =right-block
     =retrieval>
-        ISA                     bad-row
-        left-block              =left-block
-        middle-block            =middle-block
-        right-block             =right-block
+        ISA                 bad-row
+        left-block          =left-block
+        middle-block        =middle-block
+        right-block         =right-block
     ==>
     =retrieval>
     =goal>
@@ -780,6 +779,7 @@
     =goal>
         isa                 goal
         state               try-bad-row
+        left-block          t
         left-block-pos      =visual-location
     =retrieval>
         isa                 bad-row
@@ -798,7 +798,7 @@
     =goal>
         isa                 goal
         state               try-bad-row
-        middle-block        t ; FAIRE TODO
+        middle-block        t
         middle-block-pos    =visual-location
     =retrieval>
         isa                     bad-row
@@ -817,6 +817,7 @@
     =goal>
         isa                 goal
         state               try-bad-row
+        right-block         t
         right-block-pos     =visual-location
     =retrieval>
         isa                     bad-row
@@ -956,8 +957,7 @@
         left-block      =left-block
         middle-block    =middle-block
         right-block     =right-block
-        block-to-remove =block-to-remove
-    -imaginal>)
+        block-to-remove =block-to-remove)
     
 ; --------------------------------------------
 ; Failure message was found, record bad row
@@ -983,7 +983,6 @@
         middle-block            =middle-block
         right-block             =right-block
         left-block-removed      t
-    -imaginal>
     !output! "================= RESTART ================")
 
 ; --------------------------------------------
@@ -1010,7 +1009,6 @@
         middle-block            =middle-block
         right-block             =right-block
         middle-block-removed    t
-    -imaginal>
     !output! "================= RESTART ================")
 
 ; --------------------------------------------
@@ -1037,8 +1035,18 @@
         middle-block            =middle-block
         right-block             =right-block
         right-block-removed     t
-    -imaginal>
     !output! "================= RESTART ================")
+
+; --------------------------------------------
+; Make sure to clear the imaginal chunk so that the chunk
+; can go into declarative memory (done in Unit 5)
+; --------------------------------------------
+(p clear-new-imaginal-chunk
+    ?imaginal>
+        state   free
+        buffer  full
+    ==>
+    -imaginal>)
 
 (start-hand-at-mouse)
 
