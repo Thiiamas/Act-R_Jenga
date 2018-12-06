@@ -281,6 +281,22 @@
    )
 )
 
+(defun draw-graph (points)
+  (let ((w (open-exp-window "Data" :width 550 :height 460 :visible t)))
+    (allow-event-manager w)
+    (add-line-to-exp-window '(50 0) '(50 420) :color 'white :window "Data")
+    (dotimes (i 11)
+      (add-text-to-exp-window :x 5 :y (+ 5 (* i 40)) :width 35 :text (format nil "~3,1f" (- 1 (* i .1))) :window "Data")
+      (add-line-to-exp-window (list 45 (+ 10 (* i 40))) (list 550 (+ 10 (* i 40))) :color 'white :window "Data"))
+    
+    (let ((x 50))
+      (mapcar (lambda (a b) (add-line-to-exp-window (list x (floor (- 410 (* a 400))))
+                                                  (list (incf x 25) (floor (- 410 (* b 400))))
+                                                    :color 'blue :window "Data"))
+        (butlast points) (cdr points)))
+    (allow-event-manager w)))
+
+
 (defun model-jenga (nb_experiments &optional nb_sets nb_trials visible)
     (if (eq nb_sets nil) (setf nb_sets *default_nb_sets*))
     (if (eq nb_trials nil) (setf nb_trials *default-nb-trials-per-sets*))
@@ -309,6 +325,15 @@
                          p-values))
         )
 
+        ;; (let ((percentages (mapcar (lambda (x) (/ (car x) (* nb_sets nb_trials))) result)))
+        ;;     (when graph
+        ;;         (draw-graph percentages))
+        ;;     (list (list (/ (apply '+ (subseq percentages 0 5)) 5)
+        ;;                 (/ (apply '+ (subseq percentages 5 10)) 5)
+        ;;                 (/ (apply '+ (subseq percentages 10 15)) 5)
+        ;;                 (/ (apply '+ (subseq percentages 15 20)) 5))
+        ;;                 percentages))))
+
         ; Calculate the average of each experiments (the % of heads for each blocks)
         (setf result (mapcar (lambda (x) (/ x nb_experiments)) result))
 
@@ -318,9 +343,9 @@
             do (format t "~%~d         ~$" a (nth (- a 1) result))
         )
         
-      (format t "~%")
-      (dolist (x p-values)
-        (format t "~%~12s: ~6,4f" (car x) (/ (second x) nb_experiments)))
+        (format t "~%")
+        (dolist (x p-values)
+            (format t "~%~12s: ~6,4f" (car x) (/ (second x) nb_experiments)))
     )
 )
 
@@ -352,7 +377,7 @@
 (clear-all)
 
 (define-model jenga 
-(sgp :v nil :act t :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans 0.2 :mp nil :rt 1)
+(sgp :v t :act t :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans 0.2 :mp nil :rt 1)
 
 (chunk-type goal 
     state 
@@ -844,7 +869,7 @@
 (p try-left-block
     =goal>
         isa                 goal
-        state               try-remember-bad-row
+        state               recall-bad-row
         left-block          t
         left-block-pos      =visual-location
     ?retrieval>
@@ -862,7 +887,7 @@
 (p try-middle-block
     =goal>
         isa                 goal
-        state               try-remember-bad-row
+        state               recall-bad-row
         middle-block        t
         middle-block-pos    =visual-location
     ?retrieval>
@@ -880,7 +905,7 @@
 (p try-right-block
     =goal>
         isa                 goal
-        state               try-remember-bad-row
+        state               recall-bad-row
         right-block        t
         right-block-pos     =visual-location
     ?retrieval>
