@@ -394,7 +394,9 @@
     (goal isa goal state start current-pos-x 0 current-pos-y 0  second-block-found nil left-block 0 middle-block 0 right-block 0 block-to-remove nil block-y nil min-x nil max-x nil)
 )
 
-; Starts the trial, find a a first block to remove
+; --------------------------------------------
+; Start looking for a new row by looking for a random block
+; --------------------------------------------
 (p start
     =goal>
         isa         goal
@@ -415,7 +417,10 @@
         kind        oval            ; 'Oval' is kind 'button'd
         color       blue)
 
-(p attend-block
+; --------------------------------------------
+; The first block has been found, must add to goal state
+; --------------------------------------------
+(p attend-first-block
     =goal>
         isa         goal
         state       looking
@@ -434,7 +439,10 @@
       isa           move-attention
       screen-pos    =visual-location)
 
-(p attend-second-block-found
+; --------------------------------------------
+; A second or third block has been found, must add to goal state
+; --------------------------------------------
+(p attend-second-or-third-block-found
     =goal>
         isa         goal
         state       looking-second-or-third
@@ -455,7 +463,8 @@
       screen-pos    =visual-location)
 
 ; --------------------------------------------
-; ENCODE LEFT BLOCK SIDE 1
+; Add the block into the goal in the right position 
+; according to its coordinates (Left position, Side 1)
 ; --------------------------------------------
 (p encode-block-left-side1
     =goal>
@@ -476,7 +485,8 @@
 )
 
 ; --------------------------------------------
-; ENCODE LEFT BLOCK SIDE 2
+; Add the block into the goal in the right position 
+; according to its coordinates (Left position, Side 2)
 ; --------------------------------------------
 (p encode-block-left-side2
     =goal>
@@ -496,9 +506,9 @@
         left-block-pos  =current-pos
 )
 
-
 ; --------------------------------------------
-; ENCODE MIDDLE BLOCK SIDE 1
+; Add the block into the goal in the right position 
+; according to its coordinates (Middle position, Side 1)
 ; --------------------------------------------
 (p encode-block-middle-side1
     =goal>
@@ -519,7 +529,8 @@
 )
 
 ; --------------------------------------------
-; ENCODE MIDDLE BLOCK SIDE 2
+; Add the block into the goal in the right position 
+; according to its coordinates (Middle position, Side 2)
 ; --------------------------------------------
 (p encode-block-middle-side2
     =goal>
@@ -540,7 +551,8 @@
 )
 
 ; --------------------------------------------
-; ENCODE RIGHT BLOCK SIDE 1
+; Add the block into the goal in the right position 
+; according to its coordinates (Right position, Side 1)
 ; --------------------------------------------
 (p encode-block-right-side1
     =goal>
@@ -561,7 +573,8 @@
 )
 
 ; --------------------------------------------
-; ENCODE RIGHT BLOCK SIDE 2
+; Add the block into the goal in the right position 
+; according to its coordinates (Right position, Side 2)
 ; --------------------------------------------
 (p encode-block-right-side2
     =goal>
@@ -581,7 +594,8 @@
 )
 
 ; --------------------------------------------
-; Try to find another block after encoding one
+; After encoding a block into the goal, try to find another block
+; (second or third)
 ; --------------------------------------------
 (p find-another-block
     =goal>
@@ -619,7 +633,8 @@
       state         start)
 
 ; --------------------------------------------
-; Did not find another block in the same row
+; Did not find another block in the same row but at least 
+; two blocks were found, try to remember a row configuration
 ; --------------------------------------------
 (p try-remember-good-row
    =goal>
