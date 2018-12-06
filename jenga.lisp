@@ -57,6 +57,7 @@
 
 ; Function that builds the display
 (defun build-display ()
+    (if (not (eq *experiment-window* nil)) (Close-exp-window))
     (setf *experiment-window* (open-exp-window "Jenga"
                                              :visible *visible*
                                              :width *window_width*
@@ -281,33 +282,30 @@
    )
 )
 
-(defun draw-graph (points)
-  (let ((w (open-exp-window "Data" :width 550 :height 460 :visible t)))
-    (allow-event-manager w)
-    (add-line-to-exp-window '(50 0) '(50 420) :color 'white :window "Data")
-    (dotimes (i 11)
-      (add-text-to-exp-window :x 5 :y (+ 5 (* i 40)) :width 35 :text (format nil "~3,1f" (- 1 (* i .1))) :window "Data")
-      (add-line-to-exp-window (list 45 (+ 10 (* i 40))) (list 550 (+ 10 (* i 40))) :color 'white :window "Data"))
-    
+(defun draw-graph (points nb_sets)
+  (let ((w (open-exp-window "Data" :width 550 :height 520 :visible t)))
+    (add-line-to-exp-window '(50 0) '(50 480) :color 'white :window "Data")
+    (dotimes (i 13)
+        (add-text-to-exp-window :x 5 :y (+ 5 (* i 40)) :width 35 :text (format nil "~3,1f" (- 60 (* i 5))) :window "Data")
+        (add-line-to-exp-window (list 45 (+ 10 (* i 40))) (list 550 (+ 10 (* i 40))) :color 'white :window "Data"))
+
+
     (let ((x 50))
-      (mapcar (lambda (a b) (add-line-to-exp-window (list x (floor (- 410 (* a 400))))
-                                                  (list (incf x 25) (floor (- 410 (* b 400))))
-                                                    :color 'blue :window "Data"))
-        (butlast points) (cdr points)))
-    (allow-event-manager w)))
+       (mapcar (lambda (a b) (add-line-to-exp-window (list x (floor (- 490 (* a 8))))
+                                                   (list (incf x (/ 550 nb_sets)) (floor (- 490 (* b 8))))
+                                                     :color 'blue :window "Data"))
+         (butlast points) (cdr points)))
+    ))
 
 
-(defun model-jenga (nb_experiments &optional nb_sets nb_trials visible)
-    (if (eq nb_sets nil) (setf nb_sets *default_nb_sets*))
-    (if (eq nb_trials nil) (setf nb_trials *default-nb-trials-per-sets*))
-    (if (eq visible nil) (setf *visible* *default_visible*) (setf *visible* visible))
+(defun model-jenga (nb_experiments &optional (nb_sets *default_nb_sets*) (nb_trials *default-nb-trials-per-sets*) (visible *default_visible*))
     
     (let (  (result (make-list nb_sets :initial-element 0))
             (p-values (list '(recall-bad-row-change-row 0) '(recall-bad-row-try-another-block 0)))  
             )
 
         (format t "~d experiment(s) of ~d set(s) of ~d trial(s)" nb_experiments nb_sets nb_trials)
-
+        
         (build-display)
 
         ; For N experiments
@@ -325,14 +323,7 @@
                          p-values))
         )
 
-        ;; (let ((percentages (mapcar (lambda (x) (/ (car x) (* nb_sets nb_trials))) result)))
-        ;;     (when graph
-        ;;         (draw-graph percentages))
-        ;;     (list (list (/ (apply '+ (subseq percentages 0 5)) 5)
-        ;;                 (/ (apply '+ (subseq percentages 5 10)) 5)
-        ;;                 (/ (apply '+ (subseq percentages 10 15)) 5)
-        ;;                 (/ (apply '+ (subseq percentages 15 20)) 5))
-        ;;                 percentages))))
+        
 
         ; Calculate the average of each experiments (the % of heads for each blocks)
         (setf result (mapcar (lambda (x) (/ x nb_experiments)) result))
@@ -346,6 +337,10 @@
         (format t "~%")
         (dolist (x p-values)
             (format t "~%~12s: ~6,4f" (car x) (/ (second x) nb_experiments)))
+
+        (Close-exp-window)
+
+        (draw-graph result nb_sets)
     )
 )
 
@@ -377,7 +372,7 @@
 (clear-all)
 
 (define-model jenga 
-(sgp :v t :act t :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans 0.2 :mp nil :rt 1)
+(sgp :v nil :act t :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans 0.2 :mp nil :rt 1)
 
 (chunk-type goal 
     state 
