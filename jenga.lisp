@@ -359,7 +359,7 @@
     current-pos
     current-pos-x
     current-pos-y
-    first-block-found   ; Says if the first block has been found
+    second-block-found   ; Says if a second block has been found
     left-block          ; Keep track of the left block state (0 = not present, 1 = present)
     middle-block        ; Keep track of the middle block state (0 = not present, 1 = present)
     right-block         ; Keep track of the right block state (0 = not present, 1 = present)
@@ -374,14 +374,12 @@
 
 (chunk-type good-row left-block middle-block right-block block-to-remove)
 (chunk-type bad-row  left-block middle-block right-block left-block-removed middle-block-removed right-block-removed)
-(chunk-type count-order first second)
 
 (define-chunks 
     (start) 
     (looking)
-    (looking-second)
-    (encode-block)
-    (find-block) 
+    (looking-second-or-third)
+    (encode-block) 
     (find-another-block)
     (try-random-block) 
     (remove-random-block) 
@@ -393,7 +391,7 @@
     (attend-failure)
     (wait-for-reset)
     (try-bad-row)
-    (goal isa goal state start current-pos-x 0 current-pos-y 0  first-block-found nil left-block 0 middle-block 0 right-block 0 block-to-remove nil block-y nil min-x nil max-x nil)
+    (goal isa goal state start current-pos-x 0 current-pos-y 0  second-block-found nil left-block 0 middle-block 0 right-block 0 block-to-remove nil block-y nil min-x nil max-x nil)
 )
 
 ; Starts the trial, find a a first block to remove
@@ -405,12 +403,12 @@
         buffer      empty
     ==>
     =goal>
-        state           looking
-        left-block      0
-        middle-block    0
-        right-block     0
-        first-block-found    nil
-        block-to-remove nil
+        state                   looking
+        left-block              0
+        middle-block            0
+        right-block             0
+        second-block-found      nil
+        block-to-remove         nil
     +visual-location>
         isa         visual-location
         :attended   nil
@@ -436,10 +434,10 @@
       isa           move-attention
       screen-pos    =visual-location)
 
-(p attend-first-block-found
+(p attend-second-block-found
     =goal>
         isa         goal
-        state       looking-second
+        state       looking-second-or-third
     =visual-location>                
         screen-x    =screen-x
         screen-y    =screen-y
@@ -451,7 +449,7 @@
       current-pos   =visual-location
       current-pos-x =screen-x
       current-pos-y =screen-y
-      first-block-found  t
+      second-block-found  t
     +visual>
       isa           move-attention
       screen-pos    =visual-location)
@@ -594,7 +592,7 @@
         max-x       =max-x
     ==>
     =goal>
-        state       looking-second
+        state       looking-second-or-third
     +visual-location>
         isa         visual-location
         :attended   nil
@@ -606,13 +604,14 @@
 )
 
 ; --------------------------------------------
-; Did not find another block in the same row
+; Did not find another block in the same row (no second block found)
+; Try another row instead, don't even try
 ; --------------------------------------------
 (p check-another-row
    =goal>
-      isa           goal
-      state         looking-second
-      first-block-found  nil
+      isa                   goal
+      state                 looking-second-or-third
+      second-block-found    nil
    ?visual-location>
       buffer        failure
   ==>
@@ -625,8 +624,8 @@
 (p try-remember-good-row
    =goal>
       isa               goal
-      state             looking-second
-      first-block-found t
+      state             looking-second-or-third
+      second-block-found t
       left-block        =left-block
       middle-block      =middle-block
       right-block       =right-block
