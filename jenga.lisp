@@ -359,7 +359,6 @@
     current-pos
     current-pos-x
     current-pos-y
-    second-block-found   ; Says if a second block has been found
     left-block          ; Keep track of the left block state (0 = not present, 1 = present)
     middle-block        ; Keep track of the middle block state (0 = not present, 1 = present)
     right-block         ; Keep track of the right block state (0 = not present, 1 = present)
@@ -377,8 +376,8 @@
 
 (define-chunks 
     (start) 
-    (looking)
-    (looking-second-or-third)
+    (looking)           ; For looking at second or third block
+    (looking-first)     ; For looking at first block
     (encode-block) 
     (find-another-block)
     (try-random-block) 
@@ -391,7 +390,7 @@
     (attend-failure)
     (wait-for-reset)
     (try-bad-row)
-    (goal isa goal state start current-pos-x 0 current-pos-y 0  second-block-found nil left-block 0 middle-block 0 right-block 0 block-to-remove nil block-y nil min-x nil max-x nil)
+    (goal isa goal state start current-pos-x 0 current-pos-y 0 left-block 0 middle-block 0 right-block 0 block-to-remove nil block-y nil min-x nil max-x nil)
 )
 
 ; --------------------------------------------
@@ -405,11 +404,10 @@
         buffer      empty
     ==>
     =goal>
-        state                   looking
+        state                   looking-first
         left-block              0
         middle-block            0
         right-block             0
-        second-block-found      nil
         block-to-remove         nil
     +visual-location>
         isa         visual-location
@@ -418,9 +416,31 @@
         color       blue)
 
 ; --------------------------------------------
-; The first block has been found, must add to goal state
+; Attend the first block 
 ; --------------------------------------------
 (p attend-first-block
+    =goal>
+        isa         goal
+        state       looking-first
+    =visual-location>                
+        screen-x    =screen-x
+        screen-y    =screen-y
+    ?visual>                         
+        state       free
+    ==>
+    =goal>
+      state         encode-block
+      current-pos   =visual-location
+      current-pos-x =screen-x
+      current-pos-y =screen-y
+    +visual>
+      isa           move-attention
+      screen-pos    =visual-location)
+
+; --------------------------------------------
+; Attend the first or second block
+; --------------------------------------------
+(p attend-second-or-third-block
     =goal>
         isa         goal
         state       looking
@@ -438,30 +458,6 @@
     +visual>
       isa           move-attention
       screen-pos    =visual-location)
-
-; --------------------------------------------
-; A second or third block has been found, must add to goal state
-; --------------------------------------------
-(p attend-second-or-third-block-found
-    =goal>
-        isa         goal
-        state       looking-second-or-third
-    =visual-location>                
-        screen-x    =screen-x
-        screen-y    =screen-y
-    ?visual>                         
-        state       free
-    ==>
-    =goal>
-      state         encode-block
-      current-pos   =visual-location
-      current-pos-x =screen-x
-      current-pos-y =screen-y
-      second-block-found  t
-    +visual>
-      isa           move-attention
-      screen-pos    =visual-location)
-
 ; --------------------------------------------
 ; Add the block into the goal in the right position 
 ; according to its coordinates (Left position, Side 1)
@@ -606,7 +602,7 @@
         max-x       =max-x
     ==>
     =goal>
-        state       looking-second-or-third
+        state       looking
     +visual-location>
         isa         visual-location
         :attended   nil
@@ -618,43 +614,27 @@
 )
 
 ; --------------------------------------------
-; Did not find another block in the same row (no second block found)
-; Try another row instead, don't even try
-; --------------------------------------------
-(p check-another-row
-   =goal>
-      isa                   goal
-      state                 looking-second-or-third
-      second-block-found    nil
-   ?visual-location>
-      buffer        failure
-  ==>
-   =goal>
-      state         start)
-
-; --------------------------------------------
 ; Did not find another block in the same row but at least 
 ; two blocks were found, try to remember a row configuration
 ; --------------------------------------------
 (p try-remember-good-row
-   =goal>
-      isa               goal
-      state             looking-second-or-third
-      second-block-found t
-      left-block        =left-block
-      middle-block      =middle-block
-      right-block       =right-block
-   ?visual-location>
-      buffer            failure
-  ==>
-   =goal>
-      state             try-remember-good-row
-   +retrieval>
-      ISA               good-row
-      left-block        =left-block
-      middle-block      =middle-block
-      right-block       =right-block
-      - block-to-remove nil)
+    =goal>
+        isa                 goal
+        state               looking
+        left-block          =left-block
+        middle-block        =middle-block
+        right-block         =right-block
+    ?visual-location>
+        buffer            failure
+    ==>
+    =goal>
+        state             try-remember-good-row
+    +retrieval>
+        ISA               good-row
+        left-block        =left-block
+        middle-block      =middle-block
+        right-block       =right-block
+        - block-to-remove nil)
 
 ; --------------------------------------------
 ; Recalled removing LEFT block is a good move
@@ -842,6 +822,20 @@
         state                   remove-block
         block-to-remove         right
         block-to-remove-pos     =visual-location)
+
+; --------------------------------------------
+; Recalled bad row but 
+; --------------------------------------------
+(p recall-bad-row-no-other-possibilities
+    =goal>
+        isa                 goal
+        state               try-bad-row
+    =retrieval>
+        buffer              full
+    ==>
+    =goal>
+        isa                 goal
+        state               start)
 
 ; --------------------------------------------
 ; Didn't recall bad row, try removing left
@@ -1069,6 +1063,7 @@
 (spp try-left-block-recall :u 5)
 (spp try-middle-block-recall :u 5)
 (spp try-right-block-recall :u 5)
+(spp recall-bad-row-no-other-possibilities :u 0)
 (spp try-left-block :u 5)
 (spp try-middle-block :u 5)
 (spp try-right-block :u 5)
