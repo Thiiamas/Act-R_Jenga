@@ -352,7 +352,7 @@
 (clear-all)
 
 (define-model jenga 
-(sgp :v nil :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans 0.2 :mp nil :rt 1)
+(sgp :v nil :act t :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans 0.2 :mp nil :rt 1)
 
 (chunk-type goal 
     state 
@@ -382,8 +382,9 @@
     (find-another-block)
     (try-random-block) 
     (remove-random-block) 
-    (try-remember-good-row) 
+    (recall-good-row)
     (try-remember-bad-row) 
+    (recall-bad-row)
     (remove-block) 
     (move-mouse)
     (wait-for-click) 
@@ -628,7 +629,7 @@
         buffer            failure
     ==>
     =goal>
-        state             try-remember-good-row
+        state             recall-good-row
     +retrieval>
         ISA               good-row
         left-block        =left-block
@@ -642,7 +643,7 @@
 (p recall-good-row-remove-left
     =goal>
         isa                 goal
-        state               try-remember-good-row
+        state               recall-good-row
         left-block-pos      =visual-location
     =retrieval>
         block-to-remove     left
@@ -659,7 +660,7 @@
 (p recall-good-row-remove-middle
     =goal>
         isa                 goal
-        state               try-remember-good-row
+        state               recall-good-row
         middle-block-pos    =visual-location
     =retrieval>
         block-to-remove     middle
@@ -676,7 +677,7 @@
 (p recall-good-row-remove-right
     =goal>
         isa                 goal
-        state               try-remember-good-row
+        state               recall-good-row
         right-block-pos     =visual-location
     =retrieval>
         block-to-remove     right
@@ -693,13 +694,13 @@
 (p did-not-recall-good-row
     =goal>
         isa        goal
-        state      try-remember-good-row
+        state      recall-good-row
     ?retrieval>
         buffer  failure
     ==>
     =goal>
         isa        goal
-        state      remove-random-block)
+        state      try-remember-bad-row)
 
 ; --------------------------------------------
 ; Try remembering if a block was bad to be removed on this row before 
@@ -708,14 +709,14 @@
 (p try-remembering-bad-row
     =goal>
         isa                 goal
-        state               remove-random-block
+        state               try-remember-bad-row
         left-block          =left-block
         middle-block        =middle-block
         right-block         =right-block
     ==>
     =goal>
         isa                     goal
-        state                   try-remember-bad-row
+        state                   recall-bad-row
     +retrieval>
         ISA                     bad-row
         left-block              =left-block
@@ -728,7 +729,7 @@
 (p recall-bad-row-change-row
     =goal>
         isa                 goal
-        state               try-remember-bad-row
+        state               recall-bad-row
         left-block          =left-block
         middle-block        =middle-block
         right-block         =right-block
@@ -750,7 +751,7 @@
 (p recall-bad-row-try-another-block
     =goal>
         isa                 goal
-        state               try-remember-bad-row
+        state               recall-bad-row
         left-block          =left-block
         middle-block        =middle-block
         right-block         =right-block
@@ -824,7 +825,7 @@
         block-to-remove-pos     =visual-location)
 
 ; --------------------------------------------
-; Recalled bad row but 
+; Recalled bad row but no block that is present and haven't tried
 ; --------------------------------------------
 (p recall-bad-row-no-other-possibilities
     =goal>
@@ -990,8 +991,7 @@
         left-block              =left-block
         middle-block            =middle-block
         right-block             =right-block
-        left-block-removed      t
-    !output! "================= RESTART ================")
+        left-block-removed      t)
 
 ; --------------------------------------------
 ; Failure message was found, record bad row
@@ -1016,8 +1016,7 @@
         left-block              =left-block
         middle-block            =middle-block
         right-block             =right-block
-        middle-block-removed    t
-    !output! "================= RESTART ================")
+        middle-block-removed    t)
 
 ; --------------------------------------------
 ; Failure message was found, record bad row 
@@ -1042,8 +1041,7 @@
         left-block              =left-block
         middle-block            =middle-block
         right-block             =right-block
-        right-block-removed     t
-    !output! "================= RESTART ================")
+        right-block-removed     t)
 
 ; --------------------------------------------
 ; Make sure to clear the imaginal chunk so that the chunk
