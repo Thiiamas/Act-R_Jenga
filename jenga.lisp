@@ -4,6 +4,7 @@
 ; Display is visible or not
 (defvar *visible* nil)                    
 
+; Default value for visible
 (defvar *default_visible* nil)
 
 ; Keep track of if it's a human playing or not
@@ -282,8 +283,10 @@
    )
 )
 
+; Show a graph in a new window representing the # of blocks removed for each sets
 (defun draw-graph (points nb_sets)
   (let ((w (open-exp-window "Data" :width 550 :height 520 :visible t)))
+    
     (add-line-to-exp-window '(50 0) '(50 480) :color 'white :window "Data")
     (dotimes (i 13)
         (add-text-to-exp-window :x 5 :y (+ 5 (* i 40)) :width 35 :text (format nil "~3,1f" (- 60 (* i 5))) :window "Data")
@@ -298,6 +301,7 @@
     ))
 
 
+; Runs the model
 (defun model-jenga (nb_experiments &optional (nb_sets *default_nb_sets*) (nb_trials *default-nb-trials-per-sets*) (visible *default_visible*))
     
     (let (  (result (make-list nb_sets :initial-element 0))
@@ -339,7 +343,6 @@
             (format t "~%~12s: ~6,4f" (car x) (/ (second x) nb_experiments)))
 
         (Close-exp-window)
-
         (draw-graph result nb_sets)
     )
 )
@@ -375,10 +378,10 @@
 (sgp :v nil :act t :esc t :egs 0.5 :show-focus t :trace-detail medium :ul t :ult t :ans 0.2 :mp nil :rt 1)
 
 (chunk-type goal 
-    state 
-    current-pos
-    current-pos-x
-    current-pos-y
+    state               ; Keeps track of the state of the model
+    current-pos         ; Current position of the block being attended
+    current-pos-x       ; Current x position of the block being attended
+    current-pos-y       ; Current y position of the block being attended
     left-block          ; Keep track of the left block state (0 = not present, 1 = present)
     middle-block        ; Keep track of the middle block state (0 = not present, 1 = present)
     right-block         ; Keep track of the right block state (0 = not present, 1 = present)
@@ -395,22 +398,20 @@
 (chunk-type bad-row  left-block middle-block right-block left-block-removed middle-block-removed right-block-removed)
 
 (define-chunks 
-    (start) 
-    (looking)           ; For looking at second or third block
-    (looking-first)     ; For looking at first block
-    (encode-block) 
-    (find-another-block)
-    (try-random-block) 
-    (remove-random-block) 
-    (recall-good-row)
-    (try-remember-bad-row) 
-    (recall-bad-row)
-    (remove-block) 
-    (move-mouse)
-    (wait-for-click) 
-    (attend-failure)
-    (wait-for-reset)
-    (try-bad-row)
+    (start)                 ; Start looking for a new row
+    (looking)               ; For looking at second or third block
+    (looking-first)         ; For looking at first block
+    (encode-block)          ; Encodes the block into the goal 
+    (find-another-block)    ; Start finding another block in the same row
+    (remove-random-block)   ; Remove a random block in the row
+    (recall-good-row)       ; Wait for the good row to be recalled or not
+    (try-remember-bad-row)  ; Try to remember a bad row in the current row configuration
+    (recall-bad-row)        ; Wait for the bad row to be recalled or not
+    (remove-block)          ; Remove the block specified in the goal (block-to-remove)
+    (move-mouse)            ; Move the mouse toward the block-to-remove-pos
+    (wait-for-click)        ; Wait for the mouse to have clicked
+    (attend-failure)        ; Saw that there was a text that appeared in the space where failure is specified
+    (try-bad-row)           ; Recalled a bad row but decided to try it anyway (the block that was not tried yet)
     (goal isa goal state start current-pos-x 0 current-pos-y 0 left-block 0 middle-block 0 right-block 0 block-to-remove nil block-y nil min-x nil max-x nil)
 )
 
@@ -479,6 +480,7 @@
     +visual>
       isa           move-attention
       screen-pos    =visual-location)
+
 ; --------------------------------------------
 ; Add the block into the goal in the right position 
 ; according to its coordinates (Left position, Side 1)
